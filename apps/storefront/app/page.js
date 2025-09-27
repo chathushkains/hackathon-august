@@ -11,6 +11,7 @@ import RegisterForm from '../components/RegisterForm';
 import UserProfile from '../components/UserProfile';
 import CheckoutForm from '../components/CheckoutForm';
 import CartSidebar from '../components/CartSidebar';
+import { getProductImageUrl } from '../utils/imageGenerator';
 import { 
   ShoppingCartIcon, 
   UserIcon, 
@@ -72,7 +73,7 @@ function StorefrontContent() {
       title: product.title,
       price: variant.prices?.[0]?.amount / 100 || 0,
       quantity: 1,
-      image: product.thumbnail || '/placeholder-product.jpg'
+      image: getProductImageUrl(product)
     };
 
     addToCart(cartItem);
@@ -254,12 +255,25 @@ function StorefrontContent() {
             filteredProducts.map((product) => {
               const variant = product.variants?.[0];
               const price = variant?.prices?.[0]?.amount / 100 || 0;
+              const imageUrl = getProductImageUrl(product);
               
               return (
                 <div key={product.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
                   <div className="aspect-w-16 aspect-h-9">
-                    <div className="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
-                      <ShoppingCartIcon className="w-12 h-12 text-gray-400" />
+                    <div className="w-full h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to shopping cart icon if image fails to load
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
+                        <ShoppingCartIcon className="w-12 h-12 text-gray-400" />
+                      </div>
                     </div>
                   </div>
                   <div className="p-6">

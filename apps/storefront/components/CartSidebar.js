@@ -98,8 +98,21 @@ export default function CartSidebar({ isOpen, onClose, onCheckout }) {
                 {cart.map((item) => (
                   <div key={item.variant_id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
                     {/* Product Image */}
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <ShoppingCartIcon className="w-8 h-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className="w-full h-full flex items-center justify-center" style={{ display: item.image ? 'none' : 'flex' }}>
+                        <ShoppingCartIcon className="w-8 h-8 text-gray-400" />
+                      </div>
                     </div>
 
                     {/* Product Details */}
