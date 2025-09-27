@@ -100,42 +100,44 @@ function StorefrontContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="header-modern sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-rose-500">ShopAir</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-black to-green-600 bg-clip-text text-transparent">
+                SMB Commerce
+              </h1>
             </div>
 
             {/* Search Bar */}
-            <div className="flex-1 max-w-lg mx-8">
+            <div className="flex-1 max-w-2xl mx-8">
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Search for products, brands, and more..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  className="search-input"
                 />
               </div>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+            <div className="hidden md:flex items-center space-x-6">
+              <button className="p-3 text-gray-500 hover:text-gray-900 transition-all duration-200 hover:bg-gray-100 rounded-xl">
                 <HeartIcon className="w-6 h-6" />
               </button>
               
               <div className="relative">
                 <button 
                   onClick={() => setShowCart(true)}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-3 text-gray-500 hover:text-gray-900 transition-all duration-200 hover:bg-gray-100 rounded-xl"
                 >
                   <ShoppingCartIcon className="w-6 h-6" />
                   {getCartItemCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-semibold shadow-lg">
                       {getCartItemCount()}
                     </span>
                   )}
@@ -143,26 +145,28 @@ function StorefrontContent() {
               </div>
 
               {isAuthenticated ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setShowProfile(true)}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 transition-all duration-200 hover:bg-gray-100 px-4 py-2 rounded-xl"
                   >
-                    <UserIcon className="w-6 h-6" />
-                    <span>{user?.firstName}</span>
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <UserIcon className="w-5 h-5 text-green-600" />
+                    </div>
+                    <span className="font-medium">{user?.firstName}</span>
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setShowLogin(true)}
-                    className="text-gray-700 hover:text-gray-900 transition-colors"
+                    className="nav-link"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => setShowRegister(true)}
-                    className="bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors"
+                    className="btn-accent"
                   >
                     Sign Up
                   </button>
@@ -174,7 +178,7 @@ function StorefrontContent() {
             <div className="md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-gray-400 hover:text-gray-600"
+                className="p-3 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
               >
                 {mobileMenuOpen ? (
                   <XMarkIcon className="w-6 h-6" />
@@ -189,17 +193,19 @@ function StorefrontContent() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b">
-          <div className="px-4 py-2 space-y-2">
+        <div className="md:hidden bg-white border-b border-gray-100 shadow-lg">
+          <div className="px-6 py-4 space-y-3">
             <button
               onClick={() => {
                 setShowCart(true);
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center space-x-2 w-full text-left p-2 hover:bg-gray-50 rounded"
+              className="flex items-center space-x-3 w-full text-left p-3 hover:bg-gray-50 rounded-xl transition-all duration-200"
             >
-              <ShoppingCartIcon className="w-5 h-5" />
-              <span>Cart ({getCartItemCount()})</span>
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <ShoppingCartIcon className="w-5 h-5 text-gray-600" />
+              </div>
+              <span className="font-medium">Cart ({getCartItemCount()})</span>
             </button>
             
             {isAuthenticated ? (
@@ -208,10 +214,12 @@ function StorefrontContent() {
                   setShowProfile(true);
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center space-x-2 w-full text-left p-2 hover:bg-gray-50 rounded"
+                className="flex items-center space-x-3 w-full text-left p-3 hover:bg-gray-50 rounded-xl transition-all duration-200"
               >
-                <UserIcon className="w-5 h-5" />
-                <span>Profile</span>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <UserIcon className="w-5 h-5 text-green-600" />
+                </div>
+                <span className="font-medium">Profile</span>
               </button>
             ) : (
               <>
@@ -220,7 +228,7 @@ function StorefrontContent() {
                     setShowLogin(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left p-2 hover:bg-gray-50 rounded"
+                  className="block w-full text-left p-3 hover:bg-gray-50 rounded-xl transition-all duration-200 font-medium"
                 >
                   Sign In
                 </button>
@@ -229,7 +237,7 @@ function StorefrontContent() {
                     setShowRegister(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left p-2 hover:bg-gray-50 rounded"
+                  className="block w-full text-left p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-medium"
                 >
                   Sign Up
                 </button>
@@ -240,15 +248,30 @@ function StorefrontContent() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h2 className="heading-1 mb-4">Discover Amazing Products</h2>
+          <p className="text-body text-xl max-w-2xl mx-auto">
+            Shop the latest trends and find exactly what you're looking for with our curated collection.
+          </p>
+        </div>
+
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid-responsive">
           {loading ? (
             Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm border p-6 animate-pulse">
-                <div className="w-full h-48 bg-gray-200 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div key={index} className="product-card p-0 animate-pulse">
+                <div className="w-full h-64 bg-gray-200 rounded-t-2xl"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-5 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="flex justify-between items-center pt-4">
+                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    <div className="h-10 bg-gray-200 rounded-xl w-24"></div>
+                  </div>
+                </div>
               </div>
             ))
           ) : filteredProducts.length > 0 ? (
@@ -258,38 +281,42 @@ function StorefrontContent() {
               const imageUrl = getProductImageUrl(product);
               
               return (
-                <div key={product.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                  <div className="aspect-w-16 aspect-h-9">
-                    <div className="w-full h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+                <div key={product.id} className="product-card p-0 group flex flex-col h-full">
+                  <div className="relative overflow-hidden flex-shrink-0">
+                    <div className="w-full h-56 bg-gray-100 rounded-t-2xl overflow-hidden">
                       <img
                         src={imageUrl}
                         alt={product.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          // Fallback to shopping cart icon if image fails to load
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';
                         }}
                       />
                       <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
-                        <ShoppingCartIcon className="w-12 h-12 text-gray-400" />
+                        <ShoppingCartIcon className="w-16 h-16 text-gray-300" />
                       </div>
                     </div>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-t-2xl"></div>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-green-600 transition-colors min-h-[2.5rem]">
                       {product.title}
                     </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">
                       {product.description}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-rose-500">
-                        ${price.toFixed(2)}
-                      </span>
+                    <div className="flex items-end justify-between pt-2 mt-auto">
+                      <div className="flex flex-col">
+                        <span className="text-xl font-bold text-black">
+                          ${price.toFixed(2)}
+                        </span>
+                        <span className="text-xs text-gray-500">Free shipping</span>
+                      </div>
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors"
+                        className="btn-accent text-sm px-3 py-2 min-w-[100px]"
                       >
                         Add to Cart
                       </button>
@@ -299,10 +326,12 @@ function StorefrontContent() {
               );
             })
           ) : (
-            <div className="col-span-full text-center py-12">
-              <ShoppingCartIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-              <p className="text-gray-500">Try adjusting your search or check back later.</p>
+            <div className="col-span-full text-center py-20">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShoppingCartIcon className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="heading-3 mb-3">No products found</h3>
+              <p className="text-body">Try adjusting your search or check back later for new arrivals.</p>
             </div>
           )}
         </div>
@@ -351,18 +380,18 @@ function StorefrontContent() {
 
       {/* Checkout Status */}
       {checkoutStatus === 'success' && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-md">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckIcon className="w-8 h-8 text-green-500" />
+        <div className="modal-backdrop flex items-center justify-center p-4 z-50">
+          <div className="modal-content p-8 text-center max-w-md scale-in">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckIcon className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Order Placed!</h2>
-            <p className="text-gray-600 mb-6">
-              Thank you for your order. You'll receive a confirmation email shortly.
+            <h2 className="heading-2 mb-3">Order Placed Successfully!</h2>
+            <p className="text-body mb-8">
+              Thank you for your order. You'll receive a confirmation email shortly with tracking details.
             </p>
             <button
               onClick={() => setCheckoutStatus(null)}
-              className="bg-rose-500 text-white px-6 py-2 rounded-lg hover:bg-rose-600 transition-colors"
+              className="btn-accent w-full"
             >
               Continue Shopping
             </button>

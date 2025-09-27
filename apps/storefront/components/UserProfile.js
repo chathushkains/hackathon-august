@@ -59,14 +59,14 @@ export default function UserProfile({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="modal-backdrop flex items-center justify-center p-4 z-50">
+      <div className="modal-content w-full max-w-md scale-in">
         <div className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">My Profile</h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="heading-2">My Profile</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -74,23 +74,23 @@ export default function UserProfile({ onClose }) {
             </button>
           </div>
 
-          <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center">
-              <UserIcon className="w-8 h-8 text-rose-500" />
+          <div className="flex items-center mb-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+              <UserIcon className="w-10 h-10 text-green-600" />
             </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">
+            <div className="ml-6">
+              <h3 className="heading-3">
                 {user?.firstName} {user?.lastName}
               </h3>
-              <p className="text-gray-500">{user?.email}</p>
+              <p className="text-body">{user?.email}</p>
             </div>
           </div>
 
           {isEditing ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-3">
                     First name
                   </label>
                   <input
@@ -100,11 +100,11 @@ export default function UserProfile({ onClose }) {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    className="input-modern"
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-3">
                     Last name
                   </label>
                   <input
@@ -114,13 +114,13 @@ export default function UserProfile({ onClose }) {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    className="input-modern"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-3">
                   Phone number
                 </label>
                 <input
@@ -129,24 +129,24 @@ export default function UserProfile({ onClose }) {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                  className="input-modern"
                 />
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl text-sm font-medium">
                   {error}
                 </div>
               )}
 
-              <div className="flex space-x-3">
+              <div className="flex space-x-4">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-rose-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-rose-600 focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 btn-accent py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="loading-spinner mr-2" />
                   ) : (
                     <>
                       <CheckIcon className="w-5 h-5 mr-2" />
@@ -157,7 +157,7 @@ export default function UserProfile({ onClose }) {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center"
+                  className="flex-1 btn-secondary py-3 flex items-center justify-center"
                 >
                   <XMarkIcon className="w-5 h-5 mr-2" />
                   Cancel
@@ -165,49 +165,49 @@ export default function UserProfile({ onClose }) {
               </div>
             </form>
           ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     First name
                   </label>
-                  <p className="text-gray-900">{user?.firstName || 'Not provided'}</p>
+                  <p className="text-gray-900 font-medium">{user?.firstName || 'Not provided'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Last name
                   </label>
-                  <p className="text-gray-900">{user?.lastName || 'Not provided'}</p>
+                  <p className="text-gray-900 font-medium">{user?.lastName || 'Not provided'}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Email
                 </label>
-                <p className="text-gray-900">{user?.email}</p>
+                <p className="text-gray-900 font-medium">{user?.email}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Phone
                 </label>
-                <p className="text-gray-900">{user?.phone || 'Not provided'}</p>
+                <p className="text-gray-900 font-medium">{user?.phone || 'Not provided'}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Member since
                 </label>
-                <p className="text-gray-900">
+                <p className="text-gray-900 font-medium">
                   {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                 </p>
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex space-x-4 pt-6">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex-1 bg-rose-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-rose-600 focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                  className="flex-1 btn-accent py-3 flex items-center justify-center"
                 >
                   <PencilIcon className="w-5 h-5 mr-2" />
                   Edit Profile
@@ -217,7 +217,7 @@ export default function UserProfile({ onClose }) {
                     logout();
                     onClose();
                   }}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  className="flex-1 btn-secondary py-3"
                 >
                   Sign Out
                 </button>

@@ -120,14 +120,14 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="modal-backdrop flex items-center justify-center p-4 z-50">
+      <div className="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="heading-2">Checkout</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -135,13 +135,13 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Customer Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card-elevated">
+              <h3 className="heading-3 mb-6">Customer Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-3">
                     First name
                   </label>
                   <input
@@ -151,11 +151,11 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    className="input-modern"
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-3">
                     Last name
                   </label>
                   <input
@@ -165,12 +165,12 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    className="input-modern"
                   />
                 </div>
               </div>
-              <div className="mt-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mt-6">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-3">
                   Email address
                 </label>
                 <input
@@ -180,17 +180,17 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                  className="input-modern"
                 />
               </div>
             </div>
 
             {/* Shipping Address */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h3>
-              <div className="space-y-4">
+            <div className="card-elevated">
+              <h3 className="heading-3 mb-6">Shipping Address</h3>
+              <div className="space-y-6">
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-3">
                     Street address
                   </label>
                   <input
@@ -200,12 +200,12 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    className="input-modern"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="city" className="block text-sm font-semibold text-gray-700 mb-3">
                       City
                     </label>
                     <input
@@ -215,11 +215,11 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                       value={formData.city}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      className="input-modern"
                     />
                   </div>
                   <div>
-                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="state" className="block text-sm font-semibold text-gray-700 mb-3">
                       State
                     </label>
                     <input
@@ -229,11 +229,11 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                       value={formData.state}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      className="input-modern"
                     />
                   </div>
                   <div>
-                    <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="zipCode" className="block text-sm font-semibold text-gray-700 mb-3">
                       ZIP code
                     </label>
                     <input
@@ -243,7 +243,7 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
                       value={formData.zipCode}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      className="input-modern"
                     />
                   </div>
                 </div>
@@ -251,39 +251,42 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
             </div>
 
             {/* Payment Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Information</h3>
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="flex items-center justify-center space-x-2 text-gray-600">
+            <div className="card-elevated">
+              <h3 className="heading-3 mb-6">Payment Information</h3>
+              <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="flex items-center justify-center space-x-3 text-gray-600">
                   <CreditCardIcon className="w-6 h-6" />
-                  <span className="text-sm">Payment will be processed securely with Stripe</span>
+                  <span className="text-sm font-medium">Payment will be processed securely with Stripe</span>
                   <LockClosedIcon className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-gray-500 text-center mt-2">
+                <p className="text-xs text-gray-500 text-center mt-3">
                   This is a demo. No real payment will be processed.
                 </p>
               </div>
             </div>
 
             {/* Order Summary */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
-              <div className="space-y-2">
+            <div className="card-elevated">
+              <h3 className="heading-3 mb-6">Order Summary</h3>
+              <div className="space-y-4">
                 {cartItems.map((item, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span>{item.title} x {item.quantity}</span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <div key={index} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
+                    <div>
+                      <span className="font-medium text-gray-900">{item.title}</span>
+                      <span className="text-gray-500 text-sm ml-2">x {item.quantity}</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
-                <div className="border-t pt-2 flex justify-between font-medium text-lg">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
+                  <span className="text-xl font-semibold text-gray-900">Total</span>
+                  <span className="text-2xl font-bold text-black">${total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl text-sm font-medium">
                 {error}
               </div>
             )}
@@ -291,13 +294,13 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-rose-500 text-white py-4 px-6 rounded-lg font-medium hover:bg-rose-600 focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full btn-accent py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="loading-spinner" />
               ) : (
                 <>
-                  <LockClosedIcon className="w-5 h-5 mr-2" />
+                  <LockClosedIcon className="w-5 h-5 mr-3" />
                   Complete Order - ${total.toFixed(2)}
                 </>
               )}
