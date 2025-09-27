@@ -7,5 +7,10 @@ module.exports = {
     admin_cors: process.env.MEDUSA_ADMIN_CORS || "http://localhost:3000,http://localhost:3001,http://localhost:3002",
     store_cors: process.env.MEDUSA_STORE_CORS || "http://localhost:3000,http://localhost:3001,http://localhost:3002",
   },
-  plugins: [],
+  plugins: [
+    {
+      resolve: "@medusajs/event-bus-local",
+      options: {}
+    }
+  ],
 };

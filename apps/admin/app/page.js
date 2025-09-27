@@ -5,8 +5,10 @@ import {
   ShoppingCartIcon, 
   CurrencyDollarIcon, 
   ExclamationTriangleIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 import { useSocket } from '../hooks/useSocket'
 import { io } from 'socket.io-client'
 
@@ -101,6 +103,13 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-6">
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <div className="flex items-center space-x-4">
+              <Link
+                href="/products"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <CubeIcon className="h-5 w-5 mr-2" />
+                Manage Products
+              </Link>
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <span className="text-sm text-gray-600">
