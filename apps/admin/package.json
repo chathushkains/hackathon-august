@@ -18,7 +18,8 @@
     "postcss": "^8.4.32",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
-    "recharts": "^2.8.0"
+    "recharts": "^2.8.0",
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "eslint": "^8.54.0",
