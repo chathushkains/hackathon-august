@@ -1,0 +1,36 @@
+{
+  "name": "hackathon-ecommerce-saga",
+  "version": "1.0.0",
+  "description": "Distributed event-driven e-commerce with Medusa, Next.js, and AI agent",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:medusa\" \"npm run dev:orchestrator\" \"npm run dev:event-server\" \"npm run dev:storefront\" \"npm run dev:admin\"",
+    "dev:medusa": "cd services/medusa && npm run dev",
+    "dev:orchestrator": "cd services/orchestrator && npm run dev",
+    "dev:event-server": "cd services/event-server && npm run dev",
+    "dev:storefront": "cd apps/storefront && npm run dev",
+    "dev:admin": "cd apps/admin && npm run dev",
+    "dev:ai-agent": "cd services/ai-agent && npm run dev",
+    "build": "npm run build:storefront && npm run build:admin",
+    "build:storefront": "cd apps/storefront && npm run build",
+    "build:admin": "cd apps/admin && npm run build",
+    "seed": "node scripts/seed_medusa.js",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "setup": "npm install && npm run docker:up && sleep 10 && npm run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "node-fetch": "^2.7.0",
+    "dotenv": "^16.3.1"
+  }
+}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function AdminTest() {
+            const [stats, setStats] = useState({});
+            const [orders, setOrders] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            const fetchData = async () => {
+                try {
+                    // Fetch stats
+                    const statsResponse = await fetch('http://localhost:4003/stats');
+                    const statsData = await statsResponse.json();
+                    setStats(statsData);
+
+                    // Fetch orders
+                    const ordersResponse = await fetch('http://localhost:4003/orders');
+                    const ordersData = await ordersResponse.json();
+                    setOrders(ordersData.orders);
+
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    setLoading(false);
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Loading admin data...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Panel Test</h1>
+                    
+                    {/* Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-lg font-medium text-gray-900">Total Orders</h3>
+                            <p className="text-3xl font-bold text-blue-600">{stats.totalOrders || 0}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-lg font-medium text-gray-900">Total Revenue</h3>
+                            <p className="text-3xl font-bold text-green-600">${stats.totalRevenue || 0}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-lg font-medium text-gray-900">Active Orders</h3>
+                            <p className="text-3xl font-bold text-yellow-600">{stats.activeOrders || 0}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-lg font-medium text-gray-900">Alerts</h3>
+                            <p className="text-3xl font-bold text-red-600">{stats.inventoryAlerts?.length || 0}</p>
+                        </div>
+                    </div>
+
+                    {/* Orders */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Orders ({orders.length})</h2>
+                        {orders.length === 0 ? (
+                            <p className="text-gray-500">No orders found</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {orders.map((order, index) => (
+                                    <div key={index} className="border p-4 rounded-lg">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-medium text-gray-900">
+                                                    Order #{order.id || order.sagaId}
+                                                </h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {typeof order.customer === 'object' ? order.customer.email : order.customer}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {new Date(order.timestamp).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-lg font-bold text-gray-900">
+                                                    ${order.amount}
+                                                </p>
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                    order.status === 'completed' 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {order.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {order.items && order.items.length > 0 && (
+                                            <div className="mt-2">
+                                                <p className="text-sm text-gray-600">
+                                                    Items: {order.items.map(item => `${item.quantity}x ${item.variant_id}`).join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-8">
+                        <button 
+                            onClick={fetchData}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                        >
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AdminTest />, document.getElementById('root'));
+    </script>
+</body>
+</html>
