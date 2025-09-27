@@ -30,10 +30,18 @@ services:
       dockerfile: Dockerfile
     environment:
       NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: medusa
+      DB_USER: medusa
+      DB_PASSWORD: medusa
     ports:
       - "9000:9000"
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   pgdata:
