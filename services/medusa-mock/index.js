@@ -390,6 +390,28 @@ app.post('/admin/orders/:id/cancel', async (req, res) => {
   }
 });
 
+// Store API - Create payment intent
+app.post('/payments/create-intent', async (req, res) => {
+  try {
+    const { amount, currency = 'usd' } = req.body;
+    
+    // Generate a mock payment intent ID
+    const paymentIntentId = `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log(`✅ Created payment intent: ${paymentIntentId} for amount: ${amount}`);
+    res.json({ 
+      success: true,
+      paymentIntentId,
+      amount,
+      currency
+    });
+    
+  } catch (error) {
+    console.error('Error creating payment intent:', error);
+    res.status(500).json({ error: 'Failed to create payment intent' });
+  }
+});
+
 // Store API - Create order (checkout)
 app.post('/store/checkout', async (req, res) => {
   const client = await pool.connect();
