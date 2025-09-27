@@ -86,7 +86,7 @@ export default function CheckoutForm({ cartItems, total, onClose, onSuccess }) {
         },
       };
 
-      const orderResponse = await fetch('http://localhost:4002/checkout', {
+      const orderResponse = await fetch('http://localhost:9000/store/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

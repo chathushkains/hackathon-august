@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../contexts/CartContext';
 import { useSocket } from '../hooks/useSocket';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthProvider } from '../contexts/AuthContext';
+import { CartProvider } from '../contexts/CartContext';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import UserProfile from '../components/UserProfile';
 import CheckoutForm from '../components/CheckoutForm';
+import CartSidebar from '../components/CartSidebar';
 import { 
   ShoppingCartIcon, 
   UserIcon, 
@@ -23,18 +25,18 @@ import toast from 'react-hot-toast';
 function StorefrontContent() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState([]);
   const [checkoutStatus, setCheckoutStatus] = useState(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showCart, setShowCart] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const { user, isAuthenticated, logout } = useAuth();
-  const { addToCart, removeFromCart, clearCart } = useCart();
+  const { cart, addToCart, removeFromCart, clearCart, getCartItemCount, getCartTotal } = useCart();
   const { isConnected } = useSocket();
 
   useEffect(() => {
@@ -78,17 +80,8 @@ function StorefrontContent() {
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) {
-      toast.error('Your cart is empty');
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setShowLogin(true);
-      return;
-    }
-
     setShowCheckout(true);
+    setShowCart(false);
   };
 
   const handleCheckoutSuccess = (order) => {
@@ -102,8 +95,6 @@ function StorefrontContent() {
     product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,11 +128,14 @@ function StorefrontContent() {
               </button>
               
               <div className="relative">
-                <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                <button 
+                  onClick={() => setShowCart(true)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
                   <ShoppingCartIcon className="w-6 h-6" />
-                  {cart.length > 0 && (
+                  {getCartItemCount() > 0 && (
                     <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {cart.length}
+                      {getCartItemCount()}
                     </span>
                   )}
                 </button>
@@ -196,6 +190,17 @@ function StorefrontContent() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b">
           <div className="px-4 py-2 space-y-2">
+            <button
+              onClick={() => {
+                setShowCart(true);
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-2 w-full text-left p-2 hover:bg-gray-50 rounded"
+            >
+              <ShoppingCartIcon className="w-5 h-5" />
+              <span>Cart ({getCartItemCount()})</span>
+            </button>
+            
             {isAuthenticated ? (
               <button
                 onClick={() => {
@@ -235,50 +240,6 @@ function StorefrontContent() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Cart Summary */}
-        {cart.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Shopping Cart</h2>
-            <div className="space-y-3">
-              {cart.map((item) => (
-                <div key={item.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <ShoppingCartIcon className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{item.title}</h3>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="font-medium text-gray-900">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="border-t pt-4 mt-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900">Total: ${total.toFixed(2)}</span>
-                <button
-                  onClick={handleCheckout}
-                  className="bg-rose-500 text-white px-6 py-2 rounded-lg hover:bg-rose-600 transition-colors"
-                >
-                  Checkout
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {loading ? (
@@ -333,6 +294,13 @@ function StorefrontContent() {
         </div>
       </main>
 
+      {/* Cart Sidebar */}
+      <CartSidebar
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        onCheckout={handleCheckout}
+      />
+
       {/* Modals */}
       {showLogin && (
         <LoginForm
@@ -361,7 +329,7 @@ function StorefrontContent() {
       {showCheckout && (
         <CheckoutForm
           cartItems={cart}
-          total={total}
+          total={getCartTotal()}
           onClose={() => setShowCheckout(false)}
           onSuccess={handleCheckoutSuccess}
         />
@@ -394,7 +362,9 @@ function StorefrontContent() {
 export default function Home() {
   return (
     <AuthProvider>
-      <StorefrontContent />
+      <CartProvider>
+        <StorefrontContent />
+      </CartProvider>
     </AuthProvider>
   );
 }

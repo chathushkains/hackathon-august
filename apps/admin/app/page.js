@@ -61,9 +61,22 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:4003/stats')
+      // Calculate stats from orders
+      const response = await fetch('http://localhost:9000/admin/orders')
       const data = await response.json()
-      setStats(data)
+      const orders = data.orders || []
+      
+      const totalOrders = orders.length
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.metadata?.total_amount || 0), 0) / 100
+      const activeOrders = orders.filter(order => order.status === 'in_progress').length
+      const inventoryAlerts = [] // Placeholder for inventory alerts
+      
+      setStats({
+        totalOrders,
+        totalRevenue,
+        activeOrders,
+        inventoryAlerts
+      })
     } catch (error) {
       console.error('Error fetching stats:', error)
     }
@@ -71,9 +84,9 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:4003/orders?limit=20')
+      const response = await fetch('http://localhost:9000/admin/orders')
       const data = await response.json()
-      setRecentOrders(data.orders)
+      setRecentOrders(data.orders || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
     }
@@ -88,7 +101,7 @@ export default function AdminDashboard() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
+    }).format(amount / 100) // Convert from cents
   }
 
   const formatTimestamp = (timestamp) => {
@@ -200,28 +213,30 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-medium text-gray-900">
-                            Order #{order.id || order.sagaId}
+                            Order #{order.id}
                           </p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {formatCurrency(order.amount || 0)}
+                            {formatCurrency(order.metadata?.total_amount || 0)}
                           </p>
                         </div>
                         <p className="text-xs text-gray-500 mb-1">
-                          {typeof order.customer === 'object' ? order.customer.email : order.customer || 'Unknown customer'}
+                          {order.email || 'Unknown customer'}
                         </p>
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-gray-400">
-                            {formatTimestamp(order.timestamp)}
+                            {formatTimestamp(order.created_at)}
                           </p>
                           <div className="flex items-center space-x-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               order.status === 'completed' 
                                 ? 'bg-green-100 text-green-800' 
-                                : order.status === 'failed'
+                                : order.status === 'cancelled'
                                 ? 'bg-red-100 text-red-800'
+                                : order.status === 'in_progress'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {order.status || (order.error ? 'Failed' : 'Completed')}
+                              {order.status || 'pending'}
                             </span>
                             {order.items && order.items.length > 0 && (
                               <span className="text-xs text-gray-500">
@@ -297,7 +312,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Order ID</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {selectedOrder.id || selectedOrder.sagaId}
+                        {selectedOrder.id}
                       </p>
                     </div>
                     <div>
@@ -305,23 +320,25 @@ export default function AdminDashboard() {
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
                         selectedOrder.status === 'completed' 
                           ? 'bg-green-100 text-green-800' 
-                          : selectedOrder.status === 'failed'
+                          : selectedOrder.status === 'cancelled'
                           ? 'bg-red-100 text-red-800'
+                          : selectedOrder.status === 'in_progress'
+                          ? 'bg-blue-100 text-blue-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {selectedOrder.status || (selectedOrder.error ? 'Failed' : 'Completed')}
+                        {selectedOrder.status || 'pending'}
                       </span>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Amount</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(selectedOrder.amount || 0)}
+                        {formatCurrency(selectedOrder.metadata?.total_amount || 0)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Date</p>
                       <p className="text-sm text-gray-900">
-                        {formatTimestamp(selectedOrder.timestamp)}
+                        {formatTimestamp(selectedOrder.created_at)}
                       </p>
                     </div>
                   </div>
@@ -332,13 +349,15 @@ export default function AdminDashboard() {
                   <h4 className="text-md font-medium text-gray-900 mb-2">Customer Information</h4>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-900">
-                      {typeof selectedOrder.customer === 'object' ? selectedOrder.customer.email : selectedOrder.customer}
+                      {selectedOrder.email}
                     </p>
-                    {selectedOrder.customer && typeof selectedOrder.customer === 'object' && selectedOrder.customer.name && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedOrder.customer.name}</p>
-                    )}
-                    {selectedOrder.shippingAddress && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedOrder.shippingAddress}</p>
+                    {selectedOrder.metadata?.shipping_address && (
+                      <div className="mt-2 text-sm text-gray-600">
+                        <p>{selectedOrder.metadata.shipping_address.firstName} {selectedOrder.metadata.shipping_address.lastName}</p>
+                        <p>{selectedOrder.metadata.shipping_address.address1}</p>
+                        <p>{selectedOrder.metadata.shipping_address.city}, {selectedOrder.metadata.shipping_address.province} {selectedOrder.metadata.shipping_address.postal_code}</p>
+                        <p>{selectedOrder.metadata.shipping_address.country_code}</p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -360,8 +379,8 @@ export default function AdminDashboard() {
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium text-gray-900">
-                                {formatCurrency(item.price || 0)}
+                              <p className="text-sm text-gray-500">
+                                Item #{index + 1}
                               </p>
                             </div>
                           </div>
@@ -373,35 +392,22 @@ export default function AdminDashboard() {
 
                 {/* Payment Info */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-2">Payment Information</h4>
+                  <h4 className="text-md font-medium text-gray-900 mb-2">Order Information</h4>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-900">
-                      Method: {selectedOrder.paymentMethod || 'Card'}
+                      Status: {selectedOrder.status || 'pending'}
                     </p>
-                    {selectedOrder.error && (
-                      <p className="text-sm text-red-600 mt-1">
-                        Error: {selectedOrder.error}
+                    <p className="text-sm text-gray-600 mt-1">
+                      Order ID: {selectedOrder.id}
+                    </p>
+                    {selectedOrder.metadata?.customer_info && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Customer: {selectedOrder.metadata.customer_info.firstName} {selectedOrder.metadata.customer_info.lastName}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Saga Info */}
-                {selectedOrder.sagaId && (
-                  <div>
-                    <h4 className="text-md font-medium text-gray-900 mb-2">Transaction Details</h4>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-900">
-                        Saga ID: {selectedOrder.sagaId}
-                      </p>
-                      {selectedOrder.compensations && selectedOrder.compensations.length > 0 && (
-                        <p className="text-sm text-red-600 mt-1">
-                          Compensations: {selectedOrder.compensations.join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -390,6 +390,53 @@ app.post('/admin/orders/:id/cancel', async (req, res) => {
   }
 });
 
+// Store API - Create order (checkout)
+app.post('/store/checkout', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const { email, items, metadata, total_amount, shipping_address } = req.body;
+    const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Insert order with "in_progress" status
+    await client.query(
+      'INSERT INTO orders (id, email, status, metadata) VALUES ($1, $2, $3, $4)',
+      [orderId, email, 'in_progress', JSON.stringify({...metadata, total_amount, shipping_address})]
+    );
+
+    // Insert order items
+    for (const item of items || []) {
+      await client.query(
+        'INSERT INTO order_items (id, order_id, variant_id, quantity) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), orderId, uuidv4(), item.quantity] // Generate UUID for variant_id
+      );
+    }
+
+    await client.query('COMMIT');
+    
+    console.log(`✅ Created order: ${orderId} with status: in_progress`);
+    res.json({ 
+      success: true,
+      order: { 
+        id: orderId, 
+        email, 
+        status: 'in_progress',
+        total_amount,
+        items: items || []
+      } 
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: 'Failed to create order' });
+  } finally {
+    client.release();
+  }
+});
+
 // Admin API - Get orders
 app.get('/admin/orders', async (req, res) => {
   try {
