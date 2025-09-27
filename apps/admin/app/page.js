@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 import { 
   ShoppingCartIcon, 
   CurrencyDollarIcon, 
-  ExclamationTriangleIcon,
   ChartBarIcon,
   CubeIcon
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useSocket } from '../hooks/useSocket'
 import { io } from 'socket.io-client'
+import CategoryChart from '../components/Charts/CategoryChart'
+import OrdersChart from '../components/Charts/OrdersChart'
+import RevenueChart from '../components/Charts/RevenueChart'
+import StatusChart from '../components/Charts/StatusChart'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -20,11 +23,104 @@ export default function AdminDashboard() {
     inventoryAlerts: []
   })
   const [recentOrders, setRecentOrders] = useState([])
-  const [recentAlerts, setRecentAlerts] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showOrderDetails, setShowOrderDetails] = useState(false)
+  
+  // Chart data state
+  const [chartData, setChartData] = useState({
+    categoryData: [],
+    ordersData: [],
+    revenueData: [],
+    statusData: []
+  })
 
   const { connected } = useSocket()
+
+  // Process orders data for charts
+  const processChartData = (orders) => {
+    if (!orders || orders.length === 0) {
+      setChartData({
+        categoryData: [],
+        ordersData: [],
+        revenueData: [],
+        statusData: []
+      })
+      return
+    }
+
+    // Process status data
+    const statusCounts = {}
+    orders.forEach(order => {
+      const status = order.status || 'pending'
+      statusCounts[status] = (statusCounts[status] || 0) + 1
+    })
+    const statusData = Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
+
+    // Process orders by day (last 7 days)
+    const ordersByDay = {}
+    const last7Days = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+      last7Days.push(dayName)
+      ordersByDay[dayName] = 0
+    }
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.created_at)
+      const dayName = orderDate.toLocaleDateString('en-US', { weekday: 'short' })
+      if (last7Days.includes(dayName)) {
+        ordersByDay[dayName]++
+      }
+    })
+
+    const ordersData = last7Days.map(day => ({
+      day,
+      orders: ordersByDay[day] || 0
+    }))
+
+    // Process revenue by month (last 6 months)
+    const revenueByMonth = {}
+    const last6Months = []
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' })
+      last6Months.push(monthName)
+      revenueByMonth[monthName] = 0
+    }
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.created_at)
+      const monthName = orderDate.toLocaleDateString('en-US', { month: 'short' })
+      if (last6Months.includes(monthName)) {
+        const amount = order.metadata?.total_amount || 0
+        revenueByMonth[monthName] += amount / 100 // Convert from cents
+      }
+    })
+
+    const revenueData = last6Months.map(month => ({
+      month,
+      revenue: Math.round(revenueByMonth[month] || 0)
+    }))
+
+    // Process category data (mock for now since we don't have product categories in orders)
+    // In a real implementation, you would join with products table to get categories
+    const categoryData = [
+      { name: 'Electronics', value: Math.floor(orders.length * 0.4) },
+      { name: 'Clothing', value: Math.floor(orders.length * 0.3) },
+      { name: 'Books', value: Math.floor(orders.length * 0.2) },
+      { name: 'Home & Garden', value: Math.floor(orders.length * 0.1) }
+    ]
+
+    setChartData({
+      categoryData,
+      ordersData,
+      revenueData,
+      statusData
+    })
+  }
 
   useEffect(() => {
     // Fetch initial stats and orders
@@ -43,16 +139,21 @@ export default function AdminDashboard() {
     })
 
     socket.on('order_completed', (order) => {
-      setRecentOrders(prev => [order, ...prev.slice(0, 9)])
+      setRecentOrders(prev => {
+        const newOrders = [order, ...prev.slice(0, 9)]
+        processChartData(newOrders)
+        return newOrders
+      })
     })
 
     socket.on('order_failed', (order) => {
-      setRecentOrders(prev => [order, ...prev.slice(0, 9)])
+      setRecentOrders(prev => {
+        const newOrders = [order, ...prev.slice(0, 9)]
+        processChartData(newOrders)
+        return newOrders
+      })
     })
 
-    socket.on('inventory_alert', (alert) => {
-      setRecentAlerts(prev => [alert, ...prev.slice(0, 9)])
-    })
 
     return () => {
       socket.disconnect()
@@ -86,7 +187,9 @@ export default function AdminDashboard() {
     try {
       const response = await fetch('http://localhost:9000/admin/orders')
       const data = await response.json()
-      setRecentOrders(data.orders || [])
+      const orders = data.orders || []
+      setRecentOrders(orders)
+      processChartData(orders)
     } catch (error) {
       console.error('Error fetching orders:', error)
     }
@@ -95,6 +198,10 @@ export default function AdminDashboard() {
   const handleOrderClick = (order) => {
     setSelectedOrder(order)
     setShowOrderDetails(true)
+  }
+
+  const refreshChartData = () => {
+    fetchOrders()
   }
 
   const formatCurrency = (amount) => {
@@ -194,7 +301,7 @@ export default function AdminDashboard() {
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors duration-200">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                    <ChartBarIcon className="h-6 w-6 text-red-600" />
                   </div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -207,104 +314,121 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* Recent Orders */}
-            <div className="card-elevated">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="heading-3">Recent Orders</h3>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          {/* Charts Section */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">Analytics Overview</h2>
+              <button
+                onClick={refreshChartData}
+                className="btn-secondary inline-flex items-center text-sm"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh Data
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {/* Orders Chart */}
+              {/* <div className="card-elevated h-96">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="heading-3">Orders by Day</h3>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                </div>
+                <OrdersChart data={chartData.ordersData} />
+              </div> */}
+
+              {/* Revenue Chart */}
+              {/* <div className="card-elevated h-96">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="heading-3">Revenue by Month</h3>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                </div>
+                <RevenueChart data={chartData.revenueData} />
+              </div> */}
+
+              {/* Category Chart */}
+              <div className="card-elevated h-[520px] flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="heading-3">Sales by Category</h3>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                </div>
+                <div className="flex-1">
+                  <CategoryChart data={chartData.categoryData} />
+                </div>
               </div>
-              <div className="space-y-4">
-                {recentOrders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ShoppingCartIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No recent orders</p>
-                  </div>
-                ) : (
-                  recentOrders.map((order, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-all duration-200 group"
-                      onClick={() => handleOrderClick(order)}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                            Order #{order.id}
-                          </p>
-                          <p className="text-lg font-bold text-gray-900">
-                            {formatCurrency(order.metadata?.total_amount || 0)}
-                          </p>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {order.email || 'Unknown customer'}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">
-                            {formatTimestamp(order.created_at)}
-                          </p>
-                          <div className="flex items-center space-x-2">
-                            <span className={`badge ${
-                              order.status === 'completed' 
-                                ? 'badge-success' 
-                                : order.status === 'cancelled'
-                                ? 'badge-danger'
-                                : order.status === 'in_progress'
-                                ? 'badge-info'
-                                : 'badge-warning'
-                            }`}>
-                              {order.status || 'pending'}
-                            </span>
-                            {order.items && order.items.length > 0 && (
-                              <span className="text-xs text-gray-500 font-medium">
-                                {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+
+              {/* Status Chart */}
+              <div className="card-elevated h-[520px] flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="heading-3">Order Status</h3>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                </div>
+                <div className="flex-1">
+                  <StatusChart data={chartData.statusData} />
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Recent Alerts */}
-            <div className="card-elevated">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="heading-3">Recent Alerts</h3>
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              </div>
-              <div className="space-y-4">
-                {recentAlerts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ExclamationTriangleIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No recent alerts</p>
-                  </div>
-                ) : (
-                  recentAlerts.map((alert, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
-                      <div>
-                        <p className="text-sm font-semibold text-red-900">
-                          Low Stock Alert
+          {/* Recent Orders - Full Width */}
+          <div className="card-elevated">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="heading-3">Recent Orders</h3>
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            </div>
+            <div className="space-y-4">
+              {recentOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <ShoppingCartIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No recent orders</p>
+                </div>
+              ) : (
+                recentOrders.map((order, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-all duration-200 group"
+                    onClick={() => handleOrderClick(order)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                          Order #{order.id}
                         </p>
-                        <p className="text-xs text-red-600 mt-1">
-                          Variant ID: {alert.variantId}
+                        <p className="text-lg font-bold text-gray-900">
+                          {formatCurrency(order.metadata?.total_amount || 0)}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-red-900">
-                          {new Date(alert.timestamp).toLocaleTimeString()}
+                      <p className="text-sm text-gray-600 mb-2">
+                        {order.email || 'Unknown customer'}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500">
+                          {formatTimestamp(order.created_at)}
                         </p>
-                        <p className="text-xs text-red-600 mt-1">
-                          Stock: {alert.currentStock}
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          <span className={`badge ${
+                            order.status === 'completed' 
+                              ? 'badge-success' 
+                              : order.status === 'cancelled'
+                              ? 'badge-danger'
+                              : order.status === 'in_progress'
+                              ? 'badge-info'
+                              : 'badge-warning'
+                          }`}>
+                            {order.status || 'pending'}
+                          </span>
+                          {order.items && order.items.length > 0 && (
+                            <span className="text-xs text-gray-500 font-medium">
+                              {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
