@@ -1,0 +1,89 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: medusa
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medusa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+  medusa:
+    build: 
+      context: ./services/medusa
+      dockerfile: Dockerfile.prod
+    environment:
+      DATABASE_URL: postgres://medusa:${POSTGRES_PASSWORD}@postgres:5432/medusa
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      MEDUSA_ADMIN_CORS: ${MEDUSA_ADMIN_CORS}
+      MEDUSA_STORE_CORS: ${MEDUSA_STORE_CORS}
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: ./services/orchestrator
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      MEDUSA_BASE_URL: http://medusa:9000
+      MEDUSA_ADMIN_TOKEN: ${MEDUSA_ADMIN_TOKEN}
+    ports:
+      - "4002:4002"
+    depends_on:
+      - redis
+      - medusa
+    restart: unless-stopped
+
+  event-server:
+    build:
+      context: ./services/event-server
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    ports:
+      - "4003:4003"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  ai-agent:
+    build:
+      context: ./services/ai-agent
+      dockerfile: Dockerfile
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MEDUSA_BASE_URL: http://medusa:9000
+      MEDUSA_ADMIN_TOKEN: ${MEDUSA_ADMIN_TOKEN}
+    ports:
+      - "4004:4004"
+    depends_on:
+      - medusa
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,248 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { ShoppingCartIcon, CheckIcon } from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
+
+export default function Home() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [cart, setCart] = useState([])
+  const [checkoutStatus, setCheckoutStatus] = useState(null)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    console.log('Fetching products...')
+    try {
+      const response = await fetch('http://localhost:9000/store/products')
+      console.log('Response status:', response.status)
+      const data = await response.json()
+      console.log('Products data:', data)
+      setProducts(data.products || [])
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      toast.error('Failed to load products: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addToCart = (product) => {
+    const cartItem = {
+      id: product.id,
+      variant_id: product.variants?.[0]?.id,
+      title: product.title,
+      price: product.variants?.[0]?.prices?.[0]?.amount / 100 || 0,
+      quantity: 1
+    }
+    setCart(prev => [...prev, cartItem])
+    toast.success('Added to cart!')
+  }
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      toast.error('Cart is empty')
+      return
+    }
+
+    setIsCheckingOut(true)
+    setCheckoutStatus('Starting checkout process...')
+
+    try {
+      const cartItems = cart.map(item => ({
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        price: item.price
+      }))
+
+      setCheckoutStatus('Creating order...')
+      const response = await fetch('http://localhost:4002/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cartItems,
+          customer: {
+            email: 'demo@example.com',
+            name: 'Demo Customer'
+          },
+          payment: {
+            method: 'card',
+            cardNumber: '****1234',
+            expiryDate: '12/25'
+          }
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        setCheckoutStatus('Order created! Processing payment...')
+        toast.success(`Order ${result.sagaId} created successfully!`)
+        
+        // Simulate processing steps
+        setTimeout(() => {
+          setCheckoutStatus('Reserving inventory...')
+        }, 1000)
+        
+        setTimeout(() => {
+          setCheckoutStatus('Processing payment...')
+        }, 2000)
+        
+        setTimeout(() => {
+          setCheckoutStatus('Finalizing order...')
+        }, 3000)
+        
+        setTimeout(() => {
+          setCheckoutStatus('Order completed successfully!')
+          toast.success('Payment processed and order completed!')
+          setCart([])
+          setIsCheckingOut(false)
+          setCheckoutStatus(null)
+        }, 4000)
+      } else {
+        setCheckoutStatus('Checkout failed')
+        toast.error(result.error || 'Checkout failed')
+        setIsCheckingOut(false)
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      setCheckoutStatus('Checkout failed')
+      toast.error('Checkout failed: ' + error.message)
+      setIsCheckingOut(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <h1 className="text-3xl font-bold text-gray-900">E-commerce Store</h1>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <ShoppingCartIcon className="h-8 w-8 text-gray-600" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Checkout Status */}
+      {checkoutStatus && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+          <div className="flex">
+            <CheckIcon className="h-5 w-5 text-blue-400" />
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                {checkoutStatus}
+              </p>
+              {isCheckingOut && (
+                <div className="mt-2">
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <div key={product.id} className="bg-white rounded-lg shadow-md p-6">
+                <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200">
+                  <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400">No Image</span>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-900">{product.title}</h3>
+                  <p className="mt-1 text-sm text-gray-500">{product.description}</p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-lg font-semibold text-gray-900">
+                      ${product.variants?.[0]?.prices?.[0]?.amount / 100 || 0}
+                    </p>
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Cart Summary */}
+          {cart.length > 0 && (
+            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Shopping Cart ({cart.length} items)</h2>
+              <div className="space-y-2">
+                {cart.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900">{item.title}</span>
+                    <span className="text-sm text-gray-500">${item.price}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex justify-between items-center">
+                <span className="text-lg font-medium">Total: ${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}</span>
+                <button
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut}
+                  className={`font-medium py-2 px-4 rounded-lg transition-colors ${
+                    isCheckingOut
+                      ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
+                >
+                  {isCheckingOut ? 'Processing...' : 'Checkout'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {products.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No products found</p>
+              <button 
+                onClick={fetchProducts}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  )
+}
